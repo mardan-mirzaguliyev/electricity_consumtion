@@ -29,5 +29,8 @@ energy <-
   mutate(as_of = str_replace_all(as_of, "est\\.", "")) |> 
   mutate(as_of = as.numeric(trimws(as_of)))
   
+# Remove rows with missing values and asterisks from location column
+energy <- energy  |> 
+  filter(!grepl("\\*", location))
 
 colnames(energy)
