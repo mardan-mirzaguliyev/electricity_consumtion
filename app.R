@@ -12,38 +12,38 @@ ui <- page_fluid(
   
   # Title card
   card(
-    class = "mb-3",  # Reduced margin
+    class = "mb-3",
     h1("Global Electricity Consumption Dashboard", 
-       class = "text-center py-2 m-0",  # Reduced padding
-       style = "color: #2C3E50; font-size: 24px;")  # Smaller font
+       class = "text-center py-2 m-0",
+       style = "color: #2C3E50; font-size: 24px;")
   ),
   
   # Layout
   layout_sidebar(
     # Sidebar with controls
     sidebar = sidebar(
-      width = 250,  # Fixed width in pixels instead of proportion
-      padding = 1,  # Reduced padding
+      width = 250,
+      padding = 1,
       card(
-        class = "shadow-sm mb-2",  # Reduced margin
+        class = "shadow-sm mb-2",
         card_header(
-          class = "bg-primary text-white py-2",  # Reduced padding
+          class = "bg-primary text-white py-2",
           h4("Display Controls", class = "m-0", style = "font-size: 16px;")
         ),
         sliderInput(
           "top_n", 
           "Show Top N Countries:",
-          min = 5, max = 50, value = 20
+          min = 5, max = 20, value = 5  # Changed max to 30
         )
       ),
       # Info card
       card(
         class = "shadow-sm",
         card_header(
-          class = "bg-primary text-white py-2",  # Reduced padding
+          class = "bg-primary text-white py-2",
           h4("About", class = "m-0", style = "font-size: 12px;")
         ),
-        p(class = "p-2 m-0 small",  # Reduced padding and smaller text
+        p(class = "p-2 m-0 small",
           "This dashboard compares global electricity consumption patterns,",
           "showing both total consumption and per capita usage side by side.",
           "Electric energy per capita [ in watt-hour ] = Total population electricity consumption [in kW·h/yr] × 1,000 / population.",
@@ -55,20 +55,19 @@ ui <- page_fluid(
     # Main panel
     layout_column_wrap(
       width = 1,
-      style = "gap: 0.5rem;",  # Reduced gap between elements
+      style = "gap: 0.5rem;",
       
       # Summary Statistics Cards
       layout_column_wrap(
         width = 1/4,
-        style = "gap: 0.5rem;",  # Reduced gap
+        style = "gap: 0.5rem;",
         
-        # Value boxes with reduced height
         value_box(
           title = "Total Consumption (TWh/yr)",
           value = textOutput("total_consumption"),
           showcase = bsicons::bs_icon("lightning-charge"),
           theme_color = "primary",
-          height = 80  # Reduced height
+          height = 80
         ),
         value_box(
           title = "Average Consumption (TWh/yr)",
@@ -97,33 +96,33 @@ ui <- page_fluid(
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        style = "gap: 1.5rem;",  # Reduced gap
+        style = "gap: 1.5rem;",
         
         # Total Consumption Plot
         card(
-          class = "shadow-sm",  # Lighter shadow
+          class = "shadow-sm",
           full_screen = TRUE,
           card_header(
-            class = "bg-primary text-white py-2",  # Reduced padding
+            class = "bg-primary text-white py-2",
             h4("Total Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            padding = 2,  # Reduced padding
-            plotOutput("total_plot", height = "400px")  # Reduced height
+            padding = 2,
+            plotOutput("total_plot", height = "400px")
           )
         ),
         
         # Per Capita Consumption Plot
         card(
-          class = "shadow-sm",  # Lighter shadow
+          class = "shadow-sm",
           full_screen = TRUE,
           card_header(
-            class = "bg-primary text-white py-2",  # Reduced padding
+            class = "bg-primary text-white py-2",
             h4("Per Capita Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            padding = 2,  # Reduced padding
-            plotOutput("capita_plot", height = "400px")  # Reduced height
+            padding = 2,
+            plotOutput("capita_plot", height = "400px")
           )
         )
       )
@@ -179,7 +178,8 @@ server <- function(input, output, session) {
                y = consumption_g_wh_yr)) +
       geom_col(fill = "#3498DB", width = 0.7) +
       geom_text(aes(label = sprintf("%.1f", consumption_g_wh_yr)),
-                hjust = -0.2, size = 2.5) +
+                hjust = 1, vjust = 0.5,  # Changed hjust to 1 to put labels inside
+                color = "white", size = 5) +  # Made text white for better visibility
       coord_flip() +
       labs(x = "Country", 
            y = "Total Consumption (TWh/year)",
@@ -194,7 +194,8 @@ server <- function(input, output, session) {
                y = consumption_per_capita_k_wh_yr)) +
       geom_col(fill = "#2ECC71", width = 0.7) +
       geom_text(aes(label = sprintf("%.0f", consumption_per_capita_k_wh_yr)),
-                hjust = -0.2, size = 2.5) +
+                hjust = 1, vjust = 0.5,  # Changed hjust to 1 to put labels inside
+                color = "white", size = 2.5) +  # Made text white for better visibility
       coord_flip() +
       labs(x = "Country", 
            y = "Consumption per Capita (kWh/year)",
