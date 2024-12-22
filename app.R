@@ -1,12 +1,7 @@
 library(shiny)
 library(tidyverse)
-library(DT)
 library(bslib)
 library(plotly)
-
-# Clean up the data (remove rows with missing values and asterisks)
-energy <- energy  |> 
-  filter(!grepl("\\*", location))
 
 ui <- page_fluid(
   theme = bs_theme(bootswatch = "flatly"),
@@ -21,36 +16,27 @@ ui <- page_fluid(
       width = 3,
       card(
         card_header("Controls"),
-        selectInput("view_type", "View Type",
-                    choices = c("Total Consumption" = "total",
-                                "Per Capita Consumption" = "per_capita")),
+        radioButtons("metric", "Select Consumption Metric",
+                     choices = c("Total Consumption (TWh/year)" = "consumption_g_wh_yr",
+                                 "Per Capita Consumption (kWh/year)" = "consumption_per_capita_k_wh_yr")),
         sliderInput("top_n", "Show Top N Countries",
-                    min = 5, max = 50, value = 20),
-        selectInput("plot_type", "Plot Type",
-                    choices = c("Bar Plot" = "bar",
-                                "Bubble Plot" = "bubble",
-                                "Scatter Plot" = "scatter"))
+                    min = 5, max = 50, value = 20)
       )
     ),
     
-    # Main panel with visualizations
+    # Main panel with visualization
     card(
-      card_header("Visualization"),
-      plotlyOutput("main_plot", height = "500px")
-    ),
-    
-    card(
-      card_header("Data Table"),
-      DTOutput("data_table")
+      card_header("Consumption Bar Plot"),
+      plotlyOutput("main_plot", height = "600px")
     )
   )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # Reactive filtered dataset
   filtered_data <- reactive({
-    if (input$view_type == "total") {
+    if (input$metric == "consumption_g_wh_yr") {
       data <- energy |>
         arrange(desc(consumption_g_wh_yr)) |>
         head(input$top_n)
@@ -66,79 +52,40 @@ server <- function(input, output) {
   output$main_plot <- renderPlotly({
     data <- filtered_data()
     
-    if (input$plot_type == "bar") {
-      if (input$view_type == "total") {
-        p <- ggplot(data, aes(x = reorder(location, consumption_g_wh_yr), 
-                              y = consumption_g_wh_yr/1000,
-                              text = paste0("Country: ", location,
-                                            "\nTotal Consumption: ", round(consumption_g_wh_yr/1000, 1), " TWh/year",
-                                            "\nPer Capita: ", round(consumption_per_capita_k_wh_yr, 1), " kWh/year"))) +
-          geom_bar(stat = "identity", fill = "#2C3E50") +
-          coord_flip() +
-          labs(x = "Country", y = "Consumption (TWh/year)") +
-          theme_minimal()
-      } else {
-        p <- ggplot(data, aes(x = reorder(location, consumption_per_capita_k_wh_yr), 
-                              y = consumption_per_capita_k_wh_yr,
-                              text = paste0("Country: ", location,
-                                            "\nPer Capita: ", round(consumption_per_capita_k_wh_yr, 1), " kWh/year",
-                                            "\nTotal Consumption: ", round(consumption_g_wh_yr/1000, 1), " TWh/year"))) +
-          geom_bar(stat = "identity", fill = "#2C3E50") +
-          coord_flip() +
-          labs(x = "Country", y = "Consumption per Capita (kWh/year)") +
-          theme_minimal()
-      }
-    } else if (input$plot_type == "bubble") {
-      if (input$view_type == "total") {
-        p <- ggplot(data, aes(x = population/1e6, y = consumption_g_wh_yr/1000, 
-                              size = consumption_per_capita_k_wh_yr,
-                              text = paste0("Country: ", location,
-                                            "\nPopulation: ", round(population/1e6, 1), "M",
-                                            "\nTotal Consumption: ", round(consumption_g_wh_yr/1000, 1), " TWh/year",
-                                            "\nPer Capita: ", round(consumption_per_capita_k_wh_yr, 1), " kWh/year"))) +
-          geom_point(alpha = 0.6, color = "#2C3E50") +
-          labs(x = "Population (Millions)", y = "Consumption (TWh/year)",
-               size = "Per Capita Consumption") +
-          theme_minimal()
-      } else {
-        p <- ggplot(data, aes(x = population/1e6, y = consumption_per_capita_k_wh_yr,
-                              size = consumption_g_wh_yr/1000,
-                              text = paste0("Country: ", location,
-                                            "\nPopulation: ", round(population/1e6, 1), "M",
-                                            "\nPer Capita: ", round(consumption_per_capita_k_wh_yr, 1), " kWh/year",
-                                            "\nTotal Consumption: ", round(consumption_g_wh_yr/1000, 1), " TWh/year"))) +
-          geom_point(alpha = 0.6, color = "#2C3E50") +
-          labs(x = "Population (Millions)", y = "Consumption per Capita (kWh/year)",
-               size = "Total Consumption (TWh)") +
-          theme_minimal()
-      }
-    } else { # Scatter plot
-      p <- ggplot(data, aes(x = consumption_g_wh_yr/1000, 
+    if (input$metric == "consumption_g_wh_yr") {
+      # Total consumption plot
+      p <- ggplot(data, aes(x = reorder(location, consumption_g_wh_yr), 
+                            y = consumption_g_wh_yr/1000,
+                            text = paste0("Country: ", location,
+                                          "\nTotal Consumption: ", format(round(consumption_g_wh_yr/1000, 1), big.mark = ","), " TWh/year",
+                                          "\nPer Capita: ", format(round(consumption_per_capita_k_wh_yr, 1), big.mark = ","), " kWh/year",
+                                          "\nPopulation: ", format(population, big.mark = ",")))) +
+        geom_bar(stat = "identity", fill = "#2C3E50") +
+        coord_flip() +
+        labs(x = "Country", 
+             y = "Total Consumption (TWh/year)",
+             title = "Total Electricity Consumption by Country") +
+        theme_minimal()
+    } else {
+      # Per capita consumption plot
+      p <- ggplot(data, aes(x = reorder(location, consumption_per_capita_k_wh_yr), 
                             y = consumption_per_capita_k_wh_yr,
                             text = paste0("Country: ", location,
-                                          "\nTotal Consumption: ", round(consumption_g_wh_yr/1000, 1), " TWh/year",
-                                          "\nPer Capita: ", round(consumption_per_capita_k_wh_yr, 1), " kWh/year",
-                                          "\nPopulation: ", round(population/1e6, 1), "M"))) +
-        geom_point(color = "#2C3E50", size = 3) +
-        labs(x = "Total Consumption (TWh/year)", 
-             y = "Consumption per Capita (kWh/year)") +
+                                          "\nPer Capita: ", format(round(consumption_per_capita_k_wh_yr, 1), big.mark = ","), " kWh/year",
+                                          "\nTotal Consumption: ", format(round(consumption_g_wh_yr/1000, 1), big.mark = ","), " TWh/year",
+                                          "\nPopulation: ", format(population, big.mark = ",")))) +
+        geom_bar(stat = "identity", fill = "#2C3E50") +
+        coord_flip() +
+        labs(x = "Country", 
+             y = "Consumption per Capita (kWh/year)",
+             title = "Per Capita Electricity Consumption by Country") +
         theme_minimal()
     }
     
     ggplotly(p, tooltip = "text")
   })
-  
-  # Data table
-  output$data_table <- renderDT({
-    data <- filtered_data()
-    datatable(data, 
-              options = list(pageLength = 10,
-                             scrollX = TRUE),
-              rownames = FALSE)
-  })
 }
 
 shinyApp(ui = ui, server = server)
-
 
 
