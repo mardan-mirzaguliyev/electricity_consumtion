@@ -1,3 +1,4 @@
+
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -12,22 +13,23 @@ ui <- page_fluid(
   
   # Title card
   card(
-    class = "mb-4",
+    class = "mb-3",  # Reduced margin
     h1("Global Electricity Consumption Dashboard", 
-       class = "text-center py-3 m-0",
-       style = "color: #2C3E50;")
+       class = "text-center py-2 m-0",  # Reduced padding
+       style = "color: #2C3E50; font-size: 24px;")  # Smaller font
   ),
   
   # Layout
   layout_sidebar(
     # Sidebar with controls
     sidebar = sidebar(
-      width = 3,
+      width = 250,  # Fixed width in pixels instead of proportion
+      padding = 1,  # Reduced padding
       card(
-        class = "shadow-sm",
+        class = "shadow-sm mb-2",  # Reduced margin
         card_header(
-          class = "bg-primary text-white",
-          h4("Display Controls", class = "m-0")
+          class = "bg-primary text-white py-2",  # Reduced padding
+          h4("Display Controls", class = "m-0", style = "font-size: 16px;")
         ),
         sliderInput(
           "top_n", 
@@ -37,12 +39,12 @@ ui <- page_fluid(
       ),
       # Info card
       card(
-        class = "mt-3 shadow-sm",
+        class = "shadow-sm",
         card_header(
-          class = "bg-primary text-white",
-          h4("About", class = "m-0")
+          class = "bg-primary text-white py-2",  # Reduced padding
+          h4("About", class = "m-0", style = "font-size: 16px;")
         ),
-        p(class = "p-3 m-0",
+        p(class = "p-2 m-0 small",  # Reduced padding and smaller text
           "This dashboard compares global electricity consumption patterns,",
           "showing both total consumption and per capita usage side by side.")
       )
@@ -51,41 +53,41 @@ ui <- page_fluid(
     # Main panel
     layout_column_wrap(
       width = 1,
+      style = "gap: 0.5rem;",  # Reduced gap between elements
       
       # Summary Statistics Cards
       layout_column_wrap(
         width = 1/4,
+        style = "gap: 0.5rem;",  # Reduced gap
         
-        # Total Consumption Card
+        # Value boxes with reduced height
         value_box(
           title = "Total Consumption (TWh/yr)",
           value = textOutput("total_consumption"),
           showcase = bsicons::bs_icon("lightning-charge"),
-          theme_color = "primary"
+          theme_color = "primary",
+          height = 90  # Reduced height
         ),
-        
-        # Average Consumption Card
         value_box(
           title = "Average Consumption (TWh/yr)",
           value = textOutput("avg_consumption"),
           showcase = bsicons::bs_icon("calculator"),
-          theme_color = "info"
+          theme_color = "info",
+          height = 90
         ),
-        
-        # Total Per Capita Card
         value_box(
           title = "Highest Per Capita (kWh/yr)",
           value = textOutput("max_per_capita"),
           showcase = bsicons::bs_icon("person"),
-          theme_color = "success"
+          theme_color = "success",
+          height = 90
         ),
-        
-        # Average Per Capita Card
         value_box(
           title = "Average Per Capita (kWh/yr)",
           value = textOutput("avg_per_capita"),
           showcase = bsicons::bs_icon("people"),
-          theme_color = "warning"
+          theme_color = "warning",
+          height = 90
         )
       ),
       
@@ -93,30 +95,33 @@ ui <- page_fluid(
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
+        style = "gap: 0.5rem;",  # Reduced gap
         
         # Total Consumption Plot
         card(
-          class = "shadow",
+          class = "shadow-sm",  # Lighter shadow
           full_screen = TRUE,
           card_header(
-            class = "bg-primary text-white",
-            h4("Total Consumption", class = "m-0")
+            class = "bg-primary text-white py-2",  # Reduced padding
+            h4("Total Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            plotOutput("total_plot", height = "300px")
+            padding = 1,  # Reduced padding
+            plotOutput("total_plot", height = "250px")  # Reduced height
           )
         ),
         
         # Per Capita Consumption Plot
         card(
-          class = "shadow",
+          class = "shadow-sm",  # Lighter shadow
           full_screen = TRUE,
           card_header(
-            class = "bg-primary text-white",
-            h4("Per Capita Consumption", class = "m-0")
+            class = "bg-primary text-white py-2",  # Reduced padding
+            h4("Per Capita Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            plotOutput("capita_plot", height = "300px")
+            padding = 1,  # Reduced padding
+            plotOutput("capita_plot", height = "250px")  # Reduced height
           )
         )
       )
@@ -157,12 +162,12 @@ server <- function(input, output, session) {
   # Custom theme for plots
   custom_theme <- theme_minimal() +
     theme(
-      plot.title = element_text(size = 12, face = "bold", color = "#2C3E50"),
-      axis.title = element_text(size = 10, color = "#2C3E50"),
+      plot.title = element_text(size = 11, face = "bold", color = "#2C3E50"),
+      axis.title = element_text(size = 9, color = "#2C3E50"),
       axis.text = element_text(size = 8, color = "#34495E"),
       panel.grid.major = element_line(color = "#ECF0F1"),
       panel.grid.minor = element_blank(),
-      plot.margin = margin(5, 5, 5, 5)
+      plot.margin = margin(2, 2, 2, 2)
     )
   
   # Total consumption plot
