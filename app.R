@@ -141,12 +141,12 @@ server <- function(input, output, session) {
   
   # Dynamic statistics
   output$total_consumption <- renderText({
-    total <- sum(selected_data()$consumption_g_wh_yr)/1000
+    total <- sum(selected_data()$consumption_g_wh_yr)
     sprintf("%.1f", total)
   })
   
   output$avg_consumption <- renderText({
-    avg <- mean(selected_data()$consumption_g_wh_yr)/1000
+    avg <- mean(selected_data()$consumption_g_wh_yr)
     sprintf("%.1f", avg)
   })
   
@@ -177,13 +177,13 @@ server <- function(input, output, session) {
            aes(x = reorder(location, desc(rank)), 
                y = consumption_g_wh_yr)) +
       geom_col(fill = "#3498DB", width = 0.7) +
-      geom_text(aes(label = sprintf("%.1f", consumption_g_wh_yr)),
-                hjust = 1, vjust = 0.5,  # Changed hjust to 1 to put labels inside
-                color = "white", size = 5) +  # Made text white for better visibility
+      geom_text(aes(label = sprintf("%.2f B", round(consumption_g_wh_yr, 0))),  # Divided by 1000 and added "B" suffix
+                hjust = 1, vjust = 0.5,
+                color = "white", size = 3.5) +
       coord_flip() +
       labs(x = "Country", 
            y = "Total Consumption (TWh/year)",
-           title = "Total Electricity Consumption") +
+           title = "Total Electricity Consumption (in Billions)") +
       custom_theme
   })
   
