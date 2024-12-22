@@ -2,6 +2,7 @@ library(shiny)
 library(tidyverse)
 library(bslib)
 
+
 ui <- page_fluid(
   theme = bs_theme(
     bootswatch = "flatly",
@@ -120,13 +121,13 @@ server <- function(input, output, session) {
         axis.text = element_text(size = 10, color = "#34495E"),
         panel.grid.major = element_line(color = "#ECF0F1"),
         panel.grid.minor = element_blank(),
-        plot.margin = margin(20, 20, 20, 20)
+        plot.margin = margin(10, 10, 10, 10)
       )
     
     if (input$metric == "consumption_g_wh_yr") {
       ggplot(data, aes(x = reorder(location, consumption_g_wh_yr), 
                        y = consumption_g_wh_yr/1000)) +
-        geom_col(fill = "#3498DB", width = 0.7) +
+        geom_col(fill = "#3498DB", width = 0.3) +
         geom_text(aes(label = sprintf("%.1f", consumption_g_wh_yr/1000)),
                   hjust = -0.2, size = 3.5) +
         coord_flip() +
@@ -138,7 +139,7 @@ server <- function(input, output, session) {
     } else if (input$metric == "consumption_per_capita_k_wh_yr") {
       ggplot(data, aes(x = reorder(location, consumption_per_capita_k_wh_yr), 
                        y = consumption_per_capita_k_wh_yr)) +
-        geom_col(fill = "#2ECC71", width = 0.7) +
+        geom_col(fill = "#2ECC71", width = 0.3) +
         geom_text(aes(label = sprintf("%.0f", consumption_per_capita_k_wh_yr)),
                   hjust = -0.2, size = 3.5) +
         coord_flip() +
@@ -150,7 +151,7 @@ server <- function(input, output, session) {
     } else {
       ggplot(data, aes(x = reorder(location, composite_score), 
                        y = composite_score)) +
-        geom_col(fill = "#E74C3C", width = 0.7) +
+        geom_col(fill = "#E74C3C", width = 0.3) +
         geom_text(aes(label = sprintf("%.3f", composite_score)),
                   hjust = -0.2, size = 3.5) +
         coord_flip() +
