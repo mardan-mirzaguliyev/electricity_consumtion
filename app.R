@@ -1,4 +1,3 @@
-
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -42,11 +41,14 @@ ui <- page_fluid(
         class = "shadow-sm",
         card_header(
           class = "bg-primary text-white py-2",  # Reduced padding
-          h4("About", class = "m-0", style = "font-size: 16px;")
+          h4("About", class = "m-0", style = "font-size: 12px;")
         ),
         p(class = "p-2 m-0 small",  # Reduced padding and smaller text
           "This dashboard compares global electricity consumption patterns,",
-          "showing both total consumption and per capita usage side by side.")
+          "showing both total consumption and per capita usage side by side.",
+          "Electric energy per capita [ in watt-hour ] = Total population electricity consumption [in kW·h/yr] × 1,000 / population.",
+          "Electric power per capita [ in watt ] = Total population electricity consumption [in kW·h/yr] × 0.114077116 / population.",
+          "1 kW·h/yr = 1,000 Wh/(365.25 × 24) h = 0.11408 Watt")
       )
     ),
     
@@ -66,28 +68,28 @@ ui <- page_fluid(
           value = textOutput("total_consumption"),
           showcase = bsicons::bs_icon("lightning-charge"),
           theme_color = "primary",
-          height = 90  # Reduced height
+          height = 80  # Reduced height
         ),
         value_box(
           title = "Average Consumption (TWh/yr)",
           value = textOutput("avg_consumption"),
           showcase = bsicons::bs_icon("calculator"),
           theme_color = "info",
-          height = 90
+          height = 80
         ),
         value_box(
           title = "Highest Per Capita (kWh/yr)",
           value = textOutput("max_per_capita"),
           showcase = bsicons::bs_icon("person"),
           theme_color = "success",
-          height = 90
+          height = 80
         ),
         value_box(
           title = "Average Per Capita (kWh/yr)",
           value = textOutput("avg_per_capita"),
           showcase = bsicons::bs_icon("people"),
           theme_color = "warning",
-          height = 90
+          height = 80
         )
       ),
       
@@ -95,7 +97,7 @@ ui <- page_fluid(
       layout_column_wrap(
         width = 1/2,
         heights_equal = "row",
-        style = "gap: 0.5rem;",  # Reduced gap
+        style = "gap: 1.5rem;",  # Reduced gap
         
         # Total Consumption Plot
         card(
@@ -106,8 +108,8 @@ ui <- page_fluid(
             h4("Total Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            padding = 1,  # Reduced padding
-            plotOutput("total_plot", height = "250px")  # Reduced height
+            padding = 2,  # Reduced padding
+            plotOutput("total_plot", height = "400px")  # Reduced height
           )
         ),
         
@@ -120,8 +122,8 @@ ui <- page_fluid(
             h4("Per Capita Consumption", class = "m-0", style = "font-size: 16px;")
           ),
           card_body(
-            padding = 1,  # Reduced padding
-            plotOutput("capita_plot", height = "250px")  # Reduced height
+            padding = 2,  # Reduced padding
+            plotOutput("capita_plot", height = "400px")  # Reduced height
           )
         )
       )
@@ -173,10 +175,10 @@ server <- function(input, output, session) {
   # Total consumption plot
   output$total_plot <- renderPlot({
     ggplot(selected_data(), 
-           aes(x = reorder(location, consumption_g_wh_yr), 
-               y = consumption_g_wh_yr/1000)) +
-      geom_col(fill = "#3498DB", width = 0.3) +
-      geom_text(aes(label = sprintf("%.1f", consumption_g_wh_yr/1000)),
+           aes(x = reorder(location, desc(rank)), 
+               y = consumption_g_wh_yr)) +
+      geom_col(fill = "#3498DB", width = 0.7) +
+      geom_text(aes(label = sprintf("%.1f", consumption_g_wh_yr)),
                 hjust = -0.2, size = 2.5) +
       coord_flip() +
       labs(x = "Country", 
@@ -188,9 +190,9 @@ server <- function(input, output, session) {
   # Per capita consumption plot
   output$capita_plot <- renderPlot({
     ggplot(selected_data(), 
-           aes(x = reorder(location, consumption_per_capita_k_wh_yr), 
+           aes(x = reorder(location, consumption_per_capita_k_wh_yr),
                y = consumption_per_capita_k_wh_yr)) +
-      geom_col(fill = "#2ECC71", width = 0.3) +
+      geom_col(fill = "#2ECC71", width = 0.7) +
       geom_text(aes(label = sprintf("%.0f", consumption_per_capita_k_wh_yr)),
                 hjust = -0.2, size = 2.5) +
       coord_flip() +
